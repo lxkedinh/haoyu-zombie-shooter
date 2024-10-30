@@ -1,112 +1,37 @@
 import pygame
-import math
+from bullet import Bullet
+from player import Player
+from zombie import Zombie
+import utils
 
 pygame.init()
 clock = pygame.time.Clock()
-screen_width = 1366
 screen_height = 768
-screen = pygame.display.set_mode((screen_width, screen_height))
+screen = pygame.display.set_mode((utils.screen_width, utils.screen_height))
 
 
-class Player(pygame.sprite.Sprite):
-    x_pos = 400
-    y_pos = 200
-
-    def __init__(self, speed):
-        pygame.sprite.Sprite.__init__(self)
-        self.speed = speed
-        self.image = pygame.Surface((50, 50))
-        self.image.fill((255, 255, 255))
-        self.rect = self.image.get_rect()
-        self.rect.center = (self.x_pos, self.y_pos)
-
-    def update(self):
-        self.movement()
-
-    def movement(self):
-        keystate = pygame.key.get_pressed()
-
-        if keystate[pygame.K_w]:
-            self.rect.y -= self.speed
-        if keystate[pygame.K_s]:
-            self.rect.y += self.speed
-        if keystate[pygame.K_a]:
-            self.rect.x -= self.speed
-        if keystate[pygame.K_d]:
-            self.rect.x += self.speed
+zombie_group = pygame.sprite.Group()
 
 
-class Bullet(pygame.sprite.Sprite):
-
-    def __init__(self, dmg, speed, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.speed = speed
-        self.dmg = dmg
-        self.image = pygame.Surface((5, 5))
-        self.image.fill((255, 255, 255))
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-
-    def update(self):
-        self.movement()
-
-    def movement(self):
-        self.rect.x += self.speed
-
-    def check_hit(self, zombie):
-        if pygame.sprite.collide_rect(self, zombie):
-            self.despawn()
-
-    def despawn(self):
-        self.kill()
-
-
-class Zombie(pygame.sprite.Sprite):
-    x_pos = 1000
-    y_pos = 200
-
-    def __init__(self, speed, health, target):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((25, 25))
-        self.image.fill((79, 163, 93))
-        self.rect = self.image.get_rect()
-        self.rect.center = (self.x_pos, self.y_pos)
-        self.speed = speed
-        self.health = health
-        self.target = target
-
-    def update(self):
-        self.movement()
-
-    def movement(self):
-        player = self.target
-        distance = math.sqrt(
-            (player.rect.centerx - self.rect.centerx) ** 2
-            + (player.rect.centery - self.rect.centery) ** 2
-        )
-
-        if distance > 0:  # Prevent division by zero
-            direction_x = (player.rect.centerx - self.rect.centerx) / distance
-            direction_y = (player.rect.centery - self.rect.centery) / distance
-
-            self.rect.x += direction_x * self.speed
-            self.rect.y += direction_y * self.speed
-
-
-player = Player(5)
+player = Player()
 
 player_group = pygame.sprite.Group()
 player_group.add(player)
-
-zombie = Zombie(3.5, 5, player)
-zombie_group = pygame.sprite.Group()
-zombie_group.add(zombie)
 
 bullet_group = pygame.sprite.Group()
 
 clicked = False
 last_click_time = None
 player_shoot_cd = 100
+
+last_spawn_time = 0
+zombie_spawn_cd = 1000
+
+
+def spawn_zombie():
+    zombie = Zombie(player)
+    zombie_group.add(zombie)
+
 
 while True:
 
@@ -115,19 +40,30 @@ while True:
             pygame.quit()
             quit()
 
+    current_time = pygame.time.get_ticks()
+
+    # spawn zombie
+    if current_time - last_spawn_time >= zombie_spawn_cd:
+        spawn_zombie()
+        last_spawn_time = pygame.time.get_ticks()
+
     keystate = pygame.key.get_pressed()
     if (keystate[pygame.K_SPACE] or pygame.mouse.get_pressed()[0] == 1) and not clicked:
         clicked = True
         last_click_time = pygame.time.get_ticks()
-        new_bullet = Bullet(10, 5, player.rect.centerx, player.rect.centery)
+        new_bullet = Bullet(10, 20, player.rect.centerx, player.rect.centery)
+        bullet_group.add(new_bullet)
 
-    current_time = pygame.time.get_ticks()
     if last_click_time and current_time - last_click_time >= player_shoot_cd:
         clicked = False
 
     # Check for collision between bullet and zombie
     for bullet in bullet_group.sprites():
-        bullet.check_hit(zombie)
+        hit_zombies = pygame.sprite.spritecollide(bullet, zombie_group, dokill=False)
+        for zombie in hit_zombies:
+            zombie.get_hit(bullet.dmg)
+            bullet.on_hit()
+        pass
 
     screen.fill((0, 0, 0))
     player_group.draw(screen)
