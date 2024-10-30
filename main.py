@@ -22,10 +22,10 @@ bullet_group = pygame.sprite.Group()
 
 clicked = False
 last_click_time = None
-player_shoot_cd = 100
+player_shoot_cd = 500
 
 last_spawn_time = 0
-zombie_spawn_cd = 1000
+zombie_spawn_cd = 2500
 
 
 def spawn_zombie():
@@ -51,7 +51,8 @@ while True:
     if (keystate[pygame.K_SPACE] or pygame.mouse.get_pressed()[0] == 1) and not clicked:
         clicked = True
         last_click_time = pygame.time.get_ticks()
-        new_bullet = Bullet(10, 20, player.rect.centerx, player.rect.centery)
+        bullet_speed = 20 if player.facingRight else -20
+        new_bullet = Bullet(10, bullet_speed, player.rect.centerx, player.rect.centery)
         bullet_group.add(new_bullet)
 
     if last_click_time and current_time - last_click_time >= player_shoot_cd:

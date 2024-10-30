@@ -7,7 +7,7 @@ class Bullet(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.dmg = dmg
-        self.image = pygame.Surface((50, 5))
+        self.image = pygame.Surface((5, 5))
         self.image.fill((255, 255, 255))
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
