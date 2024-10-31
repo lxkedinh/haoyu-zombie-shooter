@@ -8,6 +8,7 @@ pygame.init()
 clock = pygame.time.Clock()
 screen_height = 768
 screen = pygame.display.set_mode((utils.screen_width, utils.screen_height))
+# background = pygame.image.load("assets/background.png")
 
 
 zombie_group = pygame.sprite.Group()
@@ -65,7 +66,7 @@ while True:
             bullet.on_hit()
         pass
 
-    screen.fill((0, 0, 0))
+    screen.fill((142, 114, 69))
     player_group.draw(screen)
     player_group.update()
     zombie_group.draw(screen)
