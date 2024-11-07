@@ -23,6 +23,7 @@ bullet_group = pygame.sprite.Group()
 
 clicked = False
 last_click_time = None
+last_hit_time = 0
 player_shoot_cd = 100
 
 last_spawn_time = 0
@@ -52,19 +53,28 @@ while True:
     if (keystate[pygame.K_SPACE] or pygame.mouse.get_pressed()[0] == 1) and not clicked:
         clicked = True
         last_click_time = pygame.time.get_ticks()
-        new_bullet = Bullet(10, 20, player.rect.centerx, player.rect.centery)
+        if player.facingLeft:
+            new_bullet = Bullet(10, -20, player.rect.centerx, player.rect.centery)
+        else:
+            new_bullet = Bullet(10, 20, player.rect.centerx, player.rect.centery)
+
         bullet_group.add(new_bullet)
 
     if last_click_time and current_time - last_click_time >= player_shoot_cd:
         clicked = False
 
     # Check for collision between bullet and zombie
-    for bullet in bullet_group.sprites():
+    for bullet in bullet_group:
         hit_zombies = pygame.sprite.spritecollide(bullet, zombie_group, dokill=False)
         for zombie in hit_zombies:
-            zombie.get_hit(bullet.dmg)
+            zombie.on_hit(bullet.dmg)
             bullet.on_hit()
-        pass
+
+    # Check for collision between zombies and player
+    for zombie in zombie_group:
+        if zombie.rect.colliderect(player.rect) and current_time - last_hit_time >= 500:
+            last_hit_time = pygame.time.get_ticks()
+            player.on_hit(1)
 
     screen.fill((142, 114, 69))
     player_group.draw(screen)

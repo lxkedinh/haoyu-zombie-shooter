@@ -24,7 +24,8 @@ class Zombie(pygame.sprite.Sprite):
         self.x_pos = utils.screen_width * random.randint(0, 1)
         self.y_pos = utils.screen_height * random.randint(0, 1)
 
-        self.image = self.walkSprites[0]
+        scaledSprite = pygame.transform.scale(self.walkSprites[0], (32 * 1.5, 32 * 1.5))
+        self.image = scaledSprite
         self.rect = self.image.get_rect()
         self.rect.center = (self.x_pos, self.y_pos)
 
@@ -46,7 +47,7 @@ class Zombie(pygame.sprite.Sprite):
             self.facingLeft = direction_x < 0
 
             currentSprite = self.walkSprites[self.walkFrameCount // 4]
-            scaledSprite = pygame.transform.scale(currentSprite, (64 * 2, 64 * 2))
+            scaledSprite = pygame.transform.scale(currentSprite, (32 * 1.5, 32 * 1.5))
             if self.facingLeft:
                 self.image = pygame.transform.flip(scaledSprite, True, False)
             else:
@@ -55,7 +56,7 @@ class Zombie(pygame.sprite.Sprite):
             self.rect.x += direction_x * self.speed
             self.rect.y += direction_y * self.speed
 
-    def get_hit(self, dmg):
+    def on_hit(self, dmg):
         self.health -= dmg
         if self.health <= 0:
             self.despawn()

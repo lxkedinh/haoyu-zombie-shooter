@@ -18,7 +18,9 @@ class Player(pygame.sprite.Sprite):
 
         self.runFrameCount = 0
         self.speed = 3
-        self.image = self.runSprites[0]
+        self.hp = 3
+        scaledSprite = pygame.transform.scale(self.runSprites[0], (64 * 1.5, 64 * 1.5))
+        self.image = scaledSprite
         self.rect = self.image.get_rect()
         self.rect.center = (self.x_pos, self.y_pos)
         self.facingLeft = False
@@ -45,9 +47,15 @@ class Player(pygame.sprite.Sprite):
             self.facingLeft = False
 
         currentSprite = self.runSprites[self.runFrameCount // 5]
-        self.image = currentSprite
+        scaledSprite = pygame.transform.scale(currentSprite, (64 * 1.5, 64 * 1.5))
 
         if self.facingLeft:
-            self.image = pygame.transform.flip(currentSprite, True, False)
+            self.image = pygame.transform.flip(scaledSprite, True, False)
         else:
-            self.image = currentSprite
+            self.image = scaledSprite
+
+    def on_hit(self, dmg):
+        self.hp -= 1
+        if self.hp <= 0:
+            print("killed")
+            self.kill()
